@@ -50,7 +50,6 @@ public class HttpServer {
         }
 
         //Loop wait for a request
-
         while (!shutdown) {
             Socket socket = null;
             InputStream input = null;
@@ -60,15 +59,19 @@ public class HttpServer {
                 socket = serverSocket.accept();
                 input = socket.getInputStream();
                 output = socket.getOutputStream();
+
                 //create Request object and parse
                 Request request = new Request(input);
                 request.parse();
+
                 //create Response object
                 Response response = new Response(output);
                 response.setRequest(request);
                 response.sendStaticResource();
+
                 //CLose the socket
                 socket.close();
+                //check if the previous URI is a shutdown command
                 shutdown = request.getUri().equals(SHUTDOWN_COMMAND);
             } catch (Exception e) {
                 e.printStackTrace();
