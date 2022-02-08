@@ -2,12 +2,17 @@
  * Aistarfish.com Inc.
  * Copyright (c) 2017-2022 All Rights Reserved.
  */
-package itomcat;
+package itomcat.connector.http;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
+
+import itomcat.Request;
+import itomcat.Response;
+import itomcat.ServletProcessor;
+import itomcat.StaticResourceProcessor;
 
 /**
  * @author xiaoyao

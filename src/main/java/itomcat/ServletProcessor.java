@@ -11,9 +11,8 @@ import java.net.URLClassLoader;
 import java.net.URLStreamHandler;
 
 import javax.servlet.Servlet;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
+
+import itomcat.connector.http.Constants;
 
 /**
  * @author xiaoyao

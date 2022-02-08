@@ -9,8 +9,6 @@ import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-import itomcat.HttpProcessor;
-
 /**
  * @author xiaoyao
  * Created by on 2022-02-08 14:24
