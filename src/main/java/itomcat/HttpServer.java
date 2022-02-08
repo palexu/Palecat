@@ -23,6 +23,7 @@ import java.net.Socket;
  */
 public class HttpServer {
     public static final String WEB_ROOT = System.getProperty("user.dir") + File.separator + "target\\classes\\webroot";
+    public static final String CLASS_ROOT = System.getProperty("user.dir") + File.separator + "target\\classes";
 
     //shutdown command
     private static final String SHUTDOWN_COMMAND = "/SHUTDOWN";
@@ -30,7 +31,9 @@ public class HttpServer {
     private boolean shutdown = false;
 
     public static void main(String[] args) {
+        System.out.println("starting...");
         HttpServer server = new HttpServer();
+        System.out.println("await...");
         server.await();
     }
 
@@ -67,7 +70,18 @@ public class HttpServer {
                 //create Response object
                 Response response = new Response(output);
                 response.setRequest(request);
-                response.sendStaticResource();
+
+                //注释：这里将处理器分为静态资源或servlet，交给各自的实现类去处理
+                //check if this is a request for a servlet or
+                //a static resource
+                //a request for a servlet begins with "/servlet/"
+                if (request.getUri().startsWith("/servlet/")) {
+                    ServletProcessor servletProcessor = new ServletProcessor();
+                    servletProcessor.process(request, response);
+                } else {
+                    StaticResourceProcessor processor = new StaticResourceProcessor();
+                    processor.process(request, response);
+                }
 
                 //CLose the socket
                 socket.close();
@@ -79,6 +93,5 @@ public class HttpServer {
 
         }
     }
-
 
 }
