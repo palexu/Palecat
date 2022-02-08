@@ -38,7 +38,7 @@ public class Response implements ServletResponse {
         byte[] bytes = new byte[BUFFER_SIZE];
 
         /* request.getUri has been replaced by request.getRequestURI */
-        File file = new File(HttpServer.WEB_ROOT, request.getUri());
+        File file = new File(Constants.WEB_ROOT, request.getUri());
         try (FileInputStream fis = new FileInputStream(file)) {
             /*
             HTTP Response = Status-Line

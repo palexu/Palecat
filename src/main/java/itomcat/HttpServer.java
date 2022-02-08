@@ -22,9 +22,6 @@ import java.net.Socket;
  * Created by on 2022-01-27 20:37
  */
 public class HttpServer {
-    public static final String WEB_ROOT = System.getProperty("user.dir") + File.separator + "target\\classes\\webroot";
-    public static final String CLASS_ROOT = System.getProperty("user.dir") + File.separator + "target\\classes";
-
     //shutdown command
     private static final String SHUTDOWN_COMMAND = "/SHUTDOWN";
     //the shutdown comman received

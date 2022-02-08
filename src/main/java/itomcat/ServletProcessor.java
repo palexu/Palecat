@@ -30,7 +30,7 @@ public class ServletProcessor {
             //create a URLClassLoader
             URL[] urls = new URL[1];
             URLStreamHandler streamHandler = null;
-            File classPath = new File(HttpServer.CLASS_ROOT);
+            File classPath = new File(Constants.CLASS_ROOT);
             // the forming of repository is taken from the
             // createClassLoader method in
             // org.apache.catalina.startup.ClassLoaderFactory
@@ -46,7 +46,6 @@ public class ServletProcessor {
 
         Class myClass = null;
         try {
-            //FIXME: servletName 需要为全限定名
             myClass = loader.loadClass(servletName);
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
