@@ -13,6 +13,10 @@ import java.net.URLStreamHandler;
 import javax.servlet.Servlet;
 
 import itomcat.connector.http.Constants;
+import itomcat.connector.http.HttpRequest;
+import itomcat.connector.http.HttpRequestFacade;
+import itomcat.connector.http.HttpResponse;
+import itomcat.connector.http.HttpResponseFacade;
 
 /**
  * @author xiaoyao
@@ -20,8 +24,8 @@ import itomcat.connector.http.Constants;
  */
 public class ServletProcessor {
 
-    public void process(Request request, Response response) {
-        String uri = request.getUri();
+    public void process(HttpRequest request, HttpResponse response) {
+        String uri = request.getRequestURI();
         String servletName = uri.substring(uri.lastIndexOf("/") + 1);
         URLClassLoader loader = null;
 
@@ -56,8 +60,8 @@ public class ServletProcessor {
             屏蔽内部方法， 使用户（servlet的开发者）只需要关注标准servlet提供的接口，而不用被tomcat内部的接口所扰乱。也避免用户误用内部接口。
             tomcat可以随意修改内部的方法，而不用担心对上层应用的兼容性问题。
              */
-            RequestFacade requestFacade = new RequestFacade(request);
-            ResponseFacade responseFacade = new ResponseFacade(response);
+            HttpRequestFacade requestFacade = new HttpRequestFacade(request);
+            HttpResponseFacade responseFacade = new HttpResponseFacade(response);
             servlet = (Servlet) myClass.newInstance();
             servlet.service(requestFacade, responseFacade);
         } catch (Exception e) {

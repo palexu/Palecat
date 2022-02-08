@@ -3,7 +3,7 @@
  * Copyright (c) 2017-2022 All Rights Reserved.
  */
 package
-        itomcat;
+        itomcat.connector.http;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -14,7 +14,8 @@ import java.io.PrintWriter;
 import java.util.Locale;
 
 import javax.servlet.ServletOutputStream;
-import javax.servlet.ServletResponse;
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletResponse;
 
 import itomcat.connector.http.Constants;
 
@@ -22,16 +23,16 @@ import itomcat.connector.http.Constants;
  * @author xiaoyao
  * Created by on 2022-01-27 20:49
  */
-public class Response implements ServletResponse {
+public class HttpResponse implements HttpServletResponse {
     private static final int BUFFER_SIZE = 1024;
-    private Request request;
+    private HttpRequest request;
     private OutputStream output;
 
-    public Response(OutputStream output) {
+    public HttpResponse(OutputStream output) {
         this.output = output;
     }
 
-    public void setRequest(Request request) {
+    public void setRequest(HttpRequest request) {
         this.request = request;
     }
 
@@ -40,7 +41,7 @@ public class Response implements ServletResponse {
         byte[] bytes = new byte[BUFFER_SIZE];
 
         /* request.getUri has been replaced by request.getRequestURI */
-        File file = new File(Constants.WEB_ROOT, request.getUri());
+        File file = new File(Constants.WEB_ROOT, request.getRequestURI());
         try (FileInputStream fis = new FileInputStream(file)) {
             /*
             HTTP Response = Status-Line
@@ -148,5 +149,90 @@ public class Response implements ServletResponse {
     @Override
     public Locale getLocale() {
         return null;
+    }
+
+    @Override
+    public void addCookie(Cookie cookie) {
+
+    }
+
+    @Override
+    public boolean containsHeader(String name) {
+        return false;
+    }
+
+    @Override
+    public String encodeURL(String url) {
+        return null;
+    }
+
+    @Override
+    public String encodeRedirectURL(String url) {
+        return null;
+    }
+
+    @Override
+    public String encodeUrl(String url) {
+        return null;
+    }
+
+    @Override
+    public String encodeRedirectUrl(String url) {
+        return null;
+    }
+
+    @Override
+    public void sendError(int sc, String msg) throws IOException {
+
+    }
+
+    @Override
+    public void sendError(int sc) throws IOException {
+
+    }
+
+    @Override
+    public void sendRedirect(String location) throws IOException {
+
+    }
+
+    @Override
+    public void setDateHeader(String name, long date) {
+
+    }
+
+    @Override
+    public void addDateHeader(String name, long date) {
+
+    }
+
+    @Override
+    public void setHeader(String name, String value) {
+
+    }
+
+    @Override
+    public void addHeader(String name, String value) {
+
+    }
+
+    @Override
+    public void setIntHeader(String name, int value) {
+
+    }
+
+    @Override
+    public void addIntHeader(String name, int value) {
+
+    }
+
+    @Override
+    public void setStatus(int sc) {
+
+    }
+
+    @Override
+    public void setStatus(int sc, String sm) {
+
     }
 }
