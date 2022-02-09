@@ -20,6 +20,9 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import itomcat.connector.http.SocketInputStream;
+import org.apache.catalina.util.Enumerator;
+import org.apache.catalina.util.ParameterMap;
+import org.apache.catalina.util.RequestUtil;
 
 /**
  * .Request 类代表一个 HTTP 请求。从负责与客户端通信的 Socket 中传递过来
@@ -33,7 +36,8 @@ public class HttpRequest implements HttpServletRequest {
     private SocketInputStream socketInputStream;
     protected HashMap<String, String> headers = new HashMap<>();
     protected ArrayList<Cookie> cookies = new ArrayList<>();
-//    protected ParameterMap parameters = null;
+    /** request中带来的访问参数，key可能对应多个value */
+    protected ParameterMap<String, Object> parameters = null;
 
     private String queryString;
     private String method;
@@ -44,6 +48,10 @@ public class HttpRequest implements HttpServletRequest {
     private String protocol;
     private int contentLength;
     private String contentType;
+    /**
+     * parameter 是否已经被解析过
+     */
+    private boolean parsed;
 
     public HttpRequest(SocketInputStream input) {
         this.socketInputStream = input;
@@ -95,6 +103,70 @@ public class HttpRequest implements HttpServletRequest {
 
     public void setContentLength(int n) {
         this.contentLength = n;
+    }
+
+    private void parseParameter() {
+        if (parsed) {
+            return;
+        }
+        ParameterMap<String, Object> results = parameters;
+        if (results == null) {
+            results = new ParameterMap<>();
+        }
+        results.setLocked(false);
+        String encoding = getCharacterEncoding();
+        if (encoding == null) {
+            encoding = "ISO-8859-1";
+        }
+
+        //parse any parameters specified in the query string
+        String queryString = getQueryString();
+        try {
+            RequestUtil.parseParameters(results, queryString, encoding);
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+
+        //parse any parameters specified in the input stream
+        String contentType = getContentType();
+        if (null == contentType) {
+            contentType = "";
+        }
+        int semicolon = contentType.indexOf(";");
+        if (semicolon >= 0) {
+            contentType = contentType.substring(0, semicolon).trim();
+        } else {
+            contentType = contentType.trim();
+        }
+
+        if ("POST".endsWith(getMethod()) && getContentLength() > 0 && "application/x-www-form-urlencoded".equalsIgnoreCase(contentType)) {
+
+            try {
+                int max = getContentLength();
+                int len = 0;
+                byte[] buf = new byte[getContentLength()];
+                ServletInputStream is = getInputStream();
+                while (len < max) {
+                    int next = is.read(buf, len, max - len);
+                    if (next < 0) {
+                        break;
+                    }
+                    len += next;
+                }
+                is.close();
+                if (len < max) {
+                    throw new RuntimeException("Content length mismatch");
+                }
+                RequestUtil.parseParameters(results, buf, encoding);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            // Store the final results
+            results.setLocked(true);
+            parsed = true;
+            parameters = results;
+        }
     }
 
     /*以下为实现HttpServletRequest的方法*/
@@ -258,24 +330,42 @@ public class HttpRequest implements HttpServletRequest {
         return null;
     }
 
+    /**
+     * lazy parse parameter
+     *
+     * @param name
+     * @return
+     */
     @Override
     public String getParameter(String name) {
+        parseParameter();
+        String[] values = (String[]) parameters.get(name);
+        if (values != null) {
+            return values[0];
+        }
         return null;
     }
 
     @Override
     public Enumeration getParameterNames() {
-        return null;
+        parseParameter();
+        return new Enumerator(this.parameters.keySet());
     }
 
     @Override
     public String[] getParameterValues(String name) {
-        return new String[0];
+        parseParameter();
+        String values[] = (String[]) parameters.get(name);
+        if (values != null) {
+            return (values);
+        }
+        return null;
     }
 
     @Override
     public Map getParameterMap() {
-        return null;
+        parseParameter();
+        return this.parameters;
     }
 
     @Override
