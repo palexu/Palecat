@@ -68,10 +68,6 @@ public class ResponseStream extends ServletOutputStream {
         if ((length > 0) && (count >= length)) {
             throw new IOException("responseStream.write.count");
         }
-
-        //todo 为什么调用  response.write(b);
-        // 估计是这一章节没有改好。期望 ResponseStream 持有 OutputStream，实际上 HttpResponsee 持有了 OutputStream，
-        // 所以权宜之计是 ResponseStream 调 HttpResponsee。 估计在后面的章节会修复？？
         response.write(b);
         count++;
     }
@@ -92,7 +88,6 @@ public class ResponseStream extends ServletOutputStream {
         if ((length > 0) && ((count + len) >= length)) {
             actual = length - count;
         }
-        //todo 为什么调用  response.write(b);
         response.write(b, off, actual);
         count += actual;
         if (actual < len) {
