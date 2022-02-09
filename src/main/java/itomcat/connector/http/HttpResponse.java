@@ -2,14 +2,14 @@
  * Aistarfish.com Inc.
  * Copyright (c) 2017-2022 All Rights Reserved.
  */
-package
-        itomcat.connector.http;
+package itomcat.connector.http;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.util.Locale;
 
@@ -27,6 +27,12 @@ public class HttpResponse implements HttpServletResponse {
     private static final int BUFFER_SIZE = 1024;
     private HttpRequest request;
     private OutputStream output;
+    private PrintWriter writer;
+
+    /**
+     * The character encoding associated with this Response.
+     */
+    protected String encoding;
 
     public HttpResponse(OutputStream output) {
         this.output = output;
@@ -57,12 +63,64 @@ public class HttpResponse implements HttpServletResponse {
             }
             output.flush();
         } catch (FileNotFoundException e) {
-            String errorMessage = "HTTP/1.1 404 File Not Found\r\n" +
-                    "Content-Type: text/html\r\n" +
-                    "Content-Length: 23\r\n" +
-                    "\r\n" +
-                    "<h1>File Not Found</h1>";
+            String errorMessage = "HTTP/1.1 404 File Not Found\r\n" + "Content-Type: text/html\r\n" + "Content-Length: 23\r\n" + "\r\n" + "<h1>File Not Found</h1>";
             output.write(errorMessage.getBytes());
+        }
+    }
+
+    protected byte[] buffer = new byte[BUFFER_SIZE];
+    protected int bufferCount = 0;
+    /**
+     * The actual number of bytes written to this Response.
+     */
+    protected int contentCount = 0;
+
+    public void write(int b) throws IOException {
+        if (bufferCount >= buffer.length) flushBuffer();
+        buffer[bufferCount++] = (byte) b;
+        contentCount++;
+    }
+
+    public void write(byte b[]) throws IOException {
+        write(b, 0, b.length);
+    }
+
+    public void write(byte b[], int off, int len) throws IOException {
+        // If the whole thing fits in the buffer, just put it there
+        if (len == 0) {
+            return;
+        }
+        if (len <= (buffer.length - bufferCount)) {
+            System.arraycopy(b, off, buffer, bufferCount, len);
+            bufferCount += len;
+            contentCount += len;
+            return;
+        }
+
+        // Flush the buffer and start writing full-buffer-size chunks
+        flushBuffer();
+        int iterations = len / buffer.length;
+        int leftoverStart = iterations * buffer.length;
+        int leftoverLen = len - leftoverStart;
+        for (int i = 0; i < iterations; i++) {
+            write(b, off + (i * buffer.length), buffer.length);
+        }
+
+        // Write the remainder (guaranteed to fit in the buffer)
+        if (leftoverLen > 0) {
+            write(b, off + leftoverStart, leftoverLen);
+        }
+    }
+
+    /**
+     * call this method to send headers and response to the output
+     */
+    public void finishResponse() {
+        // sendHeaders();
+        // Flush and close the appropriate output mechanism
+        if (writer != null) {
+            writer.flush();
+            writer.close();
         }
     }
 
@@ -72,7 +130,11 @@ public class HttpResponse implements HttpServletResponse {
 
     @Override
     public String getCharacterEncoding() {
-        return null;
+        if (encoding == null) {
+            return "ISO-8859-1";
+        } else {
+            return encoding;
+        }
     }
 
     @Override
@@ -87,18 +149,17 @@ public class HttpResponse implements HttpServletResponse {
 
     @Override
     public PrintWriter getWriter() throws IOException {
-        // autoflush is true, println() will flush,
-        // but print() will not.
-        /*
-        TODO 因此，任何 print 方法的调用都会发生在 servlet 的 service 方法的最后一行，输出将不被发送到浏览器。这个缺点将会在下一个应用程序中修复
-         */
-        PrintWriter writer = new PrintWriter(output, true);
+        ResponseStream newStream = new ResponseStream(this);
+        newStream.setCommit(false);
+
+        OutputStreamWriter osr = new OutputStreamWriter(newStream, getCharacterEncoding());
+        writer = new ResponseWriter(osr);
         return writer;
     }
 
     @Override
     public void setCharacterEncoding(String s) {
-
+        this.encoding = s;
     }
 
     @Override
@@ -123,7 +184,14 @@ public class HttpResponse implements HttpServletResponse {
 
     @Override
     public void flushBuffer() throws IOException {
-
+        //committed = true;
+        if (bufferCount > 0) {
+            try {
+                output.write(buffer, 0, bufferCount);
+            } finally {
+                bufferCount = 0;
+            }
+        }
     }
 
     @Override

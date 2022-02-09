@@ -54,16 +54,17 @@ public class ServletProcessor {
             e.printStackTrace();
         }
 
+        Servlet servlet = null;
         try {
-            Servlet servlet = null;
             /*
             屏蔽内部方法， 使用户（servlet的开发者）只需要关注标准servlet提供的接口，而不用被tomcat内部的接口所扰乱。也避免用户误用内部接口。
             tomcat可以随意修改内部的方法，而不用担心对上层应用的兼容性问题。
              */
+            servlet = (Servlet) myClass.newInstance();
             HttpRequestFacade requestFacade = new HttpRequestFacade(request);
             HttpResponseFacade responseFacade = new HttpResponseFacade(response);
-            servlet = (Servlet) myClass.newInstance();
             servlet.service(requestFacade, responseFacade);
+            ((HttpResponse) response).finishResponse();
         } catch (Exception e) {
             e.printStackTrace();
         } catch (Throwable e) {

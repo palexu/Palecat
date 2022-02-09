@@ -15,7 +15,7 @@ public class PrimitiveServlet implements Servlet {
     }
 
     public void service(ServletRequest request, ServletResponse response) throws ServletException, IOException {
-        System.out.println("from service");
+//        System.out.println("from service");
         PrintWriter out = response.getWriter();
         out.print("HTTP/1.1 200 OK\r\n\r\n");
         out.println("Hello. Roses are red.");
