@@ -31,8 +31,8 @@ import itomcat.connector.http.SocketInputStream;
  */
 public class HttpRequest implements HttpServletRequest {
     private SocketInputStream socketInputStream;
-    protected HashMap headers = new HashMap();
-    protected ArrayList cookies = new ArrayList();
+    protected HashMap<String, String> headers = new HashMap<>();
+    protected ArrayList<Cookie> cookies = new ArrayList<>();
 //    protected ParameterMap parameters = null;
 
     private String queryString;
@@ -42,6 +42,8 @@ public class HttpRequest implements HttpServletRequest {
     private String requestedSessionId;
     private boolean requestedSessionURL;
     private String protocol;
+    private int contentLength;
+    private String contentType;
 
     public HttpRequest(SocketInputStream input) {
         this.socketInputStream = input;
@@ -75,6 +77,26 @@ public class HttpRequest implements HttpServletRequest {
         this.requestURI = requestURI;
     }
 
+    public void addHeader(String name, String value) {
+        headers.put(name, value);
+    }
+
+    public void addCookie(Cookie cookie) {
+        this.cookies.add(cookie);
+    }
+
+    public void setRequestedSessionCookie(boolean b) {
+        //TODO
+    }
+
+    public void setContentType(String value) {
+        this.contentType = value;
+    }
+
+    public void setContentLength(int n) {
+        this.contentLength = n;
+    }
+
     /*以下为实现HttpServletRequest的方法*/
     @Override
     public String getAuthType() {
@@ -83,7 +105,7 @@ public class HttpRequest implements HttpServletRequest {
 
     @Override
     public Cookie[] getCookies() {
-        return new Cookie[0];
+        return this.cookies.toArray(new Cookie[]{});
     }
 
     @Override
@@ -93,7 +115,7 @@ public class HttpRequest implements HttpServletRequest {
 
     @Override
     public String getHeader(String name) {
-        return null;
+        return this.headers.get(name);
     }
 
     @Override
@@ -223,12 +245,12 @@ public class HttpRequest implements HttpServletRequest {
 
     @Override
     public int getContentLength() {
-        return 0;
+        return this.contentLength;
     }
 
     @Override
     public String getContentType() {
-        return null;
+        return this.contentType;
     }
 
     @Override

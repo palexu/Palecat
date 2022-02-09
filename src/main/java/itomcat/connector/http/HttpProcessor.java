@@ -5,9 +5,12 @@ import java.io.OutputStream;
 import java.net.Socket;
 
 import javax.servlet.ServletException;
+import javax.servlet.http.Cookie;
 
 import itomcat.ServletProcessor;
 import itomcat.StaticResourceProcessor;
+import org.apache.catalina.util.RequestUtil;
+import static itomcat.connector.http.SocketInputStream.sm;
 
 /**
  * @author xiaoyao
@@ -40,7 +43,7 @@ public class HttpProcessor {
             response.setHeader("Server", "Palecat Servlet Container");
 
             parseRequest(input, output);
-            parseHeader(input);
+            parseHeaders(input);
 
             //注释：这里将处理器分为静态资源或servlet，交给各自的实现类去处理
             //check if this is a request for a servlet or
@@ -145,11 +148,53 @@ public class HttpProcessor {
      * @return
      */
     private String normalize(String uri) {
-        return uri;
+        return RequestUtil.normalize(uri);
     }
 
-    private void parseHeader(SocketInputStream input) {
-        //TODO
+    private void parseHeaders(SocketInputStream input) throws ServletException, IOException {
+        while (true) {
+            HttpHeader header = new HttpHeader();
+
+            // Read the next header
+            input.readHeader(header);
+            if (header.nameEnd == 0) {
+                if (header.valueEnd == 0) {
+                    return;
+                } else {
+                    throw new ServletException(sm.getString("httpProcessor.parseHeaders.colon"));
+                }
+            }
+
+            String name = new String(header.name, 0, header.nameEnd);
+            String value = new String(header.value, 0, header.valueEnd);
+            request.addHeader(name, value);
+            // do something for some headers, ignore others.
+            if (name.equals("cookie")) {
+                Cookie cookies[] = RequestUtil.parseCookieHeader(value);
+                for (int i = 0; i < cookies.length; i++) {
+                    if (cookies[i].getName().equals("jsessionid")) {
+                        // Override anything requested in the URL
+                        if (!request.isRequestedSessionIdFromCookie()) {
+                            // Accept only the first session id cookie
+                            request.setRequestedSessionId(cookies[i].getValue());
+                            request.setRequestedSessionCookie(true);
+                            request.setRequestedSessionURL(false);
+                        }
+                    }
+                    request.addCookie(cookies[i]);
+                }
+            } else if (name.equals("content-length")) {
+                int n = -1;
+                try {
+                    n = Integer.parseInt(value);
+                } catch (Exception e) {
+                    throw new ServletException(sm.getString("httpProcessor.parseHeaders.contentLength"));
+                }
+                request.setContentLength(n);
+            } else if (name.equals("content-type")) {
+                request.setContentType(value);
+            }
+        } //end while
     }
 
 
