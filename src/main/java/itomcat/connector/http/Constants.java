@@ -8,6 +8,6 @@ import java.io.File;
  */
 public interface Constants {
     String Package = "itomcat.connector.http";
-    String WEB_ROOT = System.getProperty("user.dir") + File.separator + "target\\classes\\webroot";
-    String CLASS_ROOT = System.getProperty("user.dir") + File.separator + "target\\classes";
+    String WEB_ROOT = System.getProperty("user.dir") + File.separator + "webroot";
+    String CLASS_ROOT = System.getProperty("user.dir") + File.separator + "webroot";
 }
