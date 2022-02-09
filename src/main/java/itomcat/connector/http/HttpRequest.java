@@ -36,7 +36,9 @@ public class HttpRequest implements HttpServletRequest {
     private SocketInputStream socketInputStream;
     protected HashMap<String, String> headers = new HashMap<>();
     protected ArrayList<Cookie> cookies = new ArrayList<>();
-    /** request中带来的访问参数，key可能对应多个value */
+    /**
+     * request中带来的访问参数，key可能对应多个value
+     */
     protected ParameterMap<String, Object> parameters = null;
 
     private String queryString;
@@ -161,12 +163,13 @@ public class HttpRequest implements HttpServletRequest {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-
-            // Store the final results
-            results.setLocked(true);
-            parsed = true;
-            parameters = results;
         }
+
+        // Store the final results
+        results.setLocked(true);
+        parsed = true;
+        parameters = results;
+
     }
 
     /*以下为实现HttpServletRequest的方法*/
@@ -192,12 +195,12 @@ public class HttpRequest implements HttpServletRequest {
 
     @Override
     public Enumeration getHeaders(String name) {
-        return null;
+        return new Enumerator(headers);
     }
 
     @Override
     public Enumeration getHeaderNames() {
-        return null;
+        return new Enumerator(headers.keySet());
     }
 
     @Override

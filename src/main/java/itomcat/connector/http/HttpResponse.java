@@ -29,6 +29,7 @@ public class HttpResponse implements HttpServletResponse {
      * The character encoding associated with this Response.
      */
     protected String encoding;
+    private String contentType;
 
     public HttpResponse(OutputStream output) {
         this.output = output;
@@ -165,7 +166,7 @@ public class HttpResponse implements HttpServletResponse {
 
     @Override
     public void setContentType(String s) {
-
+        this.contentType = s;
     }
 
     @Override
