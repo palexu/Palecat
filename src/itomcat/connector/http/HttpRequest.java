@@ -88,11 +88,21 @@ public class HttpRequest implements HttpServletRequest {
     }
 
     public void addHeader(String name, String value) {
-        headers.put(name, value);
+        name = name.toLowerCase();
+        synchronized (headers) {
+            ArrayList values = (ArrayList) headers.get(name);
+            if (values == null) {
+                values = new ArrayList();
+                headers.put(name, values);
+            }
+            values.add(value);
+        }
     }
 
     public void addCookie(Cookie cookie) {
-        this.cookies.add(cookie);
+        synchronized (cookies) {
+            cookies.add(cookie);
+        }
     }
 
     public void setRequestedSessionCookie(boolean b) {

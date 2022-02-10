@@ -55,6 +55,7 @@ public class HttpResponse implements HttpServletResponse {
             [ message-body ]
             Status-Line = HTTP-Version SP Status-Code SP Reason-Phrase CRLF
             */
+            output.write("HTTP/1.1 200 OK\n\n".getBytes());
             int ch = fis.read(bytes, 0, BUFFER_SIZE);
             while (ch != -1) {
                 output.write(bytes, 0, ch);
@@ -65,7 +66,9 @@ public class HttpResponse implements HttpServletResponse {
             String errorMessage = "HTTP/1.1 404 File Not Found\r\n" + "Content-Type: text/html\r\n" + "Content-Length: 23\r\n" + "\r\n" + "<h1>File Not Found</h1>";
             output.write(errorMessage.getBytes());
         }finally {
-            fis.close();
+            if (fis != null) {
+                fis.close();
+            }
         }
     }
 
@@ -155,6 +158,7 @@ public class HttpResponse implements HttpServletResponse {
 
         OutputStreamWriter osr = new OutputStreamWriter(newStream, getCharacterEncoding());
         writer = new ResponseWriter(osr);
+        writer.println("HTTP/1.1 200 OK\n\n");
         return writer;
     }
 

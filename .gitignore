@@ -1,3 +1,5 @@
 target/
 .idea/vcs.xml
 .idea/workspace.xml
+.idea/
+/palecat.iml
